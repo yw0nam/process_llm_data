@@ -1,0 +1,3 @@
+preprocessor:
+  _target_: inst.ver_1.ver_1_0.preprocess
+  dataset_path: ${dataset_path}
