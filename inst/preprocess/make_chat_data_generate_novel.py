@@ -9,9 +9,9 @@ import pandas as pd
 from utils import jdump, jload
 import numpy as np
 # %%
-chara_bg_dicts = jload('../../datas/system_dict_updated.json')
+chara_bg_dicts = jload('./../../datas/processed/system_dict_updated.json')
 system_message = """This is an RP (roleplay) chat. Our characters could come from all sorts of places--like movies, video games, books, or even anime. Make sure that you follow all my instructions and setup, based on the details to follow
-I'm going to give you an character name, a background, and a {game_name}.
+I'm going to give you an character name, a background.
 I want you to respond and answer like characters using the tone, manner and vocabulary characters would use. 
 Here is Main Character's backgrounds.
 """
@@ -63,7 +63,7 @@ for name, group in tqdm(grouped):
 def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dicts, mask_portion=0.4):
     while True:
         flag = 0
-        masked_ls =[mapped_text[0]]
+        masked_ls =[]
         out_mapped_text = []
         mask_ = np.random.choice([0, 1], size=len(mapped_text), p=[1-mask_portion, mask_portion])
         for text, mask, chara in zip(mapped_text, mask_, characters):
@@ -82,7 +82,7 @@ def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dic
 
     output = "\n".join([f"{i+1}: {out}" for i, out in enumerate(out_mapped_text)])
     chara_bgs = []
-    for chara in characters:
+    for chara in list(set(characters)):
         if chara in chara_bg_dicts:
             chara_bgs.append(chara_bg_dicts[chara])
     instruction = system_message.format(game_name=game_name) +"\n".join(chara_bgs) +"\n与えられた台詞を見て、[MASK]で省略されたキャラクターの台詞を上から順番に生成してください。"
@@ -95,7 +95,7 @@ def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init
     init_mapped_text = mapped_text[:init_index]
     target_mapped_text = mapped_text[init_index:]
     chara_bgs = []
-    for chara in characters:
+    for chara in list(set(characters)):
         if chara in chara_bg_dicts:
             chara_bgs.append(chara_bg_dicts[chara])
     instruction = system_message.format(game_name=game_name) +"\n".join(chara_bgs) +"\n与えられたキャラクターを利用して、キャラクターの会話につながる会話を生成してください。"
