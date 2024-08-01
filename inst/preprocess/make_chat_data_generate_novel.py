@@ -10,7 +10,7 @@ from utils import jdump, jload
 import numpy as np
 # %%
 chara_bg_dicts = jload('./../../datas/processed/system_dict_updated.json')
-system_message = """This is an RP (roleplay) chat. Our characters could come from all sorts of places--like movies, video games, books, or even anime. Make sure that you follow all my instructions and setup, based on the details to follow
+system_message = """This is an RP (roleplay) chat. Our characters could come visual novels.
 I'm going to give you an character name, a background.
 I want you to respond and answer like characters using the tone, manner and vocabulary characters would use. 
 Here is Main Character's backgrounds.
@@ -85,9 +85,10 @@ def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dic
     for chara in list(set(characters)):
         if chara in chara_bg_dicts:
             chara_bgs.append(chara_bg_dicts[chara])
-    instruction = system_message.format(game_name=game_name) +"\n".join(chara_bgs) +"\n与えられた台詞を見て、[MASK]で省略されたキャラクターの台詞を上から順番に生成してください。"
+    system = system_message +"\n".join(chara_bgs)
+    instruction = "[MASK]で省略されたキャラクターの台詞を上から順番に生成してください。"
     inputs = "\n".join(masked_ls)
-    return instruction, inputs, output, 'fill_mask'
+    return system, instruction, inputs, output, 'fill_mask'
 
 def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init_portion=0.3):
     
@@ -98,22 +99,23 @@ def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init
     for chara in list(set(characters)):
         if chara in chara_bg_dicts:
             chara_bgs.append(chara_bg_dicts[chara])
-    instruction = system_message.format(game_name=game_name) +"\n".join(chara_bgs) +"\n与えられたキャラクターを利用して、キャラクターの会話につながる会話を生成してください。"
+    system = system_message +"\n".join(chara_bgs)
+    instruction = "キャラクターの会話につながる会話を生成してください。"
     inputs = "\n".join(init_mapped_text)
     output = "\n".join(target_mapped_text)
-    return instruction, inputs, output, 'novel_generate'
+    return system, instruction, inputs, output, 'novel_generate'
 # %%
 df = pd.DataFrame(out)
 # %%
 tqdm.pandas()
-instruction, inputs, output, source = zip(*df.progress_apply((lambda x: 
+system, instruction, inputs, output, source = zip(*df.progress_apply((lambda x: 
     make_masked_chat_prediction(**x, chara_bg_dicts=chara_bg_dicts) 
     if random.randint(0,1) == 0  and any([character in chara_bg_dicts for character in list(set(x['characters']))]) else 
     make_novel_generate(**x, chara_bg_dicts=chara_bg_dicts) 
 ),axis=1))
     
 # %%
-dataset = pd.DataFrame({'instruction': instruction, 'input': inputs, 'output': output, 'source': source})
+dataset = pd.DataFrame({'system': system, 'instruction': instruction, 'input': inputs, 'output': output, 'source': source})
 # %%
 novel_generate = dataset.query("source =='novel_generate'").apply(lambda x: 
     {   
@@ -121,6 +123,7 @@ novel_generate = dataset.query("source =='novel_generate'").apply(lambda x:
         "instruction": x['instruction'],
         'input': x['input'], 
         'output': x['output'],
+        "system": x['system'],
     },
     axis=1
 ).to_list()
@@ -130,10 +133,11 @@ fill_mask = dataset.query("source =='fill_mask'").apply(lambda x:
         "instruction": x['instruction'],
         'input': x['input'], 
         'output': x['output'],
+        "system": x['system'],
     },
     axis=1
 ).to_list()
 # %%
-jdump(novel_generate, '../../datas/generate_novel.json')
-jdump(fill_mask, '../../datas/fill_mask.json')
+jdump(novel_generate, '../../datas/processed/generate_novel.json')
+jdump(fill_mask, '../../datas/processed/fill_mask.json')
 # %%

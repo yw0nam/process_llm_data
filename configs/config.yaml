@@ -11,4 +11,5 @@ main:
 defaults:
   - instruction: ver_1.0.yaml
 
-dataset_path: ~/Desktop/codes/llm_data_processing/datas/
+dataset_path: /Users/nam-young-woo/Desktop/codes/llm_data_processing/datas/
+use_system: True

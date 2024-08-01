@@ -1,13 +1,14 @@
 from tqdm import tqdm
-from utils import get_length, make_chat_template, auto_log_process
+from utils import get_length, make_chat_template, auto_log_process, merge_system_to_inst
 import pandas as pd
 
 @auto_log_process
 class preprocess:
     dataset_path: str
     
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path,use_system):
         self.dataset_path = dataset_path
+        self.use_system = use_system
     def process_datasets(self) -> dict:
         df_dicts = {}
         return df_dicts
@@ -27,10 +28,11 @@ class preprocess:
             dataset['chat_template'] = dataset.apply(lambda x: make_chat_template(x['instruction'], x['input'], x['output'], x['system']),axis=1)
             dataset['length'] = dataset['chat_template'].map(lambda x: get_length(x))
             data_dfs[i] = dataset
-            
+        if not self.use_system:
+            for i, dataset in enumerate(data_dfs):
+                dataset['chat_template'] = dataset['chat_template'].map(lambda x: merge_system_to_inst(x))
+                data_dfs[i] = dataset
         data = pd.concat(data_dfs, ignore_index=True)
-        data['input'] = data['input'].fillna('')
-        data['system'] = data['system'].fillna('')
         return data
         
         

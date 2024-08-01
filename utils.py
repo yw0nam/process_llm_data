@@ -80,3 +80,8 @@ def auto_log_process(cls):
         if isinstance(attr_value, types.FunctionType) and ('init') not in attr_name:
             setattr(cls, attr_name, log_process(attr_value))
     return cls
+
+def merge_system_to_inst(chat_template: list[dict]):
+    system_message = chat_template.pop(0)['content']
+    chat_template[0]['content'] = f"{system_message}\n{chat_template[0]['content']}"
+    return chat_template

@@ -11,6 +11,7 @@ class preprocess(preprocess):
         dicts['generate_novel'] = pd.read_json(os.path.join(self.dataset_path, 'processed/generate_novel.json'))
         dicts['fill_mask'] = pd.read_json(os.path.join(self.dataset_path, 'processed/fill_mask.json'))
         dicts['target_chara_chat'] = pd.read_json(os.path.join(self.dataset_path, 'processed/target_chara_chat.json'))
+        dicts['long_context_chat'] = pd.read_json(os.path.join(self.dataset_path, 'processed/long_context_chat.json'))
         return dicts
     def process_datasets(self) -> dict:
         dicts = {}
