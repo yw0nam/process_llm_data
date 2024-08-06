@@ -14,12 +14,12 @@ def save_split(df, root_path, save_path, type='instruction'):
             },
             axis=1
         )
-    elif type == 'dpo':
+    elif type == 'preference':
         df = df.apply(lambda x: 
             {   
-                "prompt" : x['prompt'],
-                "chosen" : x['chosen'],
-                "rejected": x['rejected'],
+                "prompt" : x['chat_template'][:-1],
+                "chosen" : x['chat_template'][-1]['content'],
+                "rejected" : x['rejected'],
                 'source': x['source']
             },
             axis=1
@@ -67,7 +67,7 @@ def process(configs, type):
 def main(configs: DictConfig) -> None:
     
     assert configs.main.version != "not_selected", "You need to specify save path"
-    assert configs.main.process_type in ['instruction', "dpo"], "Wrong process name. select dpo or instruction."
+    assert configs.main.process_type in ['instruction', "preference"], "Wrong process name. select preference or instruction."
     process(configs, configs.main.process_type)
 if __name__ == "__main__":
     main()

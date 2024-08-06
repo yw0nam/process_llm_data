@@ -56,7 +56,7 @@ for name, group in tqdm(grouped):
         out.append({
             'mapped_text': temp_df['mapped_text'].to_list(),
             'characters': temp_df.name.to_list(),
-            'game_name': temp_df['game_name'].iloc[0]
+            'game_name': temp_df['game_name'].iloc[0],
         })
         idx += context_size
 # %%
@@ -88,7 +88,7 @@ def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dic
     system = system_message +"\n".join(chara_bgs)
     instruction = "[MASK]で省略されたキャラクターの台詞を上から順番に生成してください。"
     inputs = "\n".join(masked_ls)
-    return system, instruction, inputs, output, 'fill_mask'
+    return system, instruction, inputs, output, 'fill_mask', game_name
 
 def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init_portion=0.3):
     
@@ -103,19 +103,27 @@ def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init
     instruction = "キャラクターの会話につながる会話を生成してください。"
     inputs = "\n".join(init_mapped_text)
     output = "\n".join(target_mapped_text)
-    return system, instruction, inputs, output, 'novel_generate'
+    return system, instruction, inputs, output, 'novel_generate', game_name
 # %%
 df = pd.DataFrame(out)
 # %%
 tqdm.pandas()
-system, instruction, inputs, output, source = zip(*df.progress_apply((lambda x: 
+system, instruction, inputs, output, source, game_name = zip(*df.progress_apply((lambda x: 
     make_masked_chat_prediction(**x, chara_bg_dicts=chara_bg_dicts) 
     if random.randint(0,1) == 0  and any([character in chara_bg_dicts for character in list(set(x['characters']))]) else 
     make_novel_generate(**x, chara_bg_dicts=chara_bg_dicts) 
 ),axis=1))
     
 # %%
-dataset = pd.DataFrame({'system': system, 'instruction': instruction, 'input': inputs, 'output': output, 'source': source})
+dataset = pd.DataFrame({
+    'system': system, 
+    'instruction': instruction, 
+    'input': inputs, 
+    'output': output, 
+    'source': source, 
+    'game_name':game_name,
+    'scene_name': scene_name
+})
 # %%
 novel_generate = dataset.query("source =='novel_generate'").apply(lambda x: 
     {   
@@ -124,6 +132,8 @@ novel_generate = dataset.query("source =='novel_generate'").apply(lambda x:
         'input': x['input'], 
         'output': x['output'],
         "system": x['system'],
+        'game_name': x['game_name'],
+        'scene_name': x['scene_name']
     },
     axis=1
 ).to_list()
@@ -134,6 +144,8 @@ fill_mask = dataset.query("source =='fill_mask'").apply(lambda x:
         'input': x['input'], 
         'output': x['output'],
         "system": x['system'],
+        'game_name': x['game_name'],
+        'scene_name': x['scene_name']
     },
     axis=1
 ).to_list()

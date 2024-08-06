@@ -103,6 +103,20 @@ for i in tqdm(range(len(main_chara_data))):
     if break_flag:
         break
     prev_last_index = index
+    if len(out) == 2:
+        name = out[1]['name']
+        splited = out[1]['content'].split('\n')
+        user, assistant = splited[0], "\n".join(splited[1:])
+        out[1] = {
+            'role': 'user',
+            'content': user,
+            'name': name
+        }
+        out.append({
+            'role': 'assistant',
+            'content': assistant,
+            'name': name
+        })
     out_ls.append({
         'chat_template': out,
         'character': data.loc[index]['name']
