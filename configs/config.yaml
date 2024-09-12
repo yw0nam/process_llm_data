@@ -4,7 +4,7 @@ hydra:
 
 main:
   version: not_selected # format: ver_4.1, ver_4.2 ... Note, make sure matching with processing module name for preventing confusion.
-  process_type: instruction # Select one [dpo, insturction]
+  process_type: instruction # Select one [preference, insturction]
   sample_size: not_selected
   valid_size: 1000
 
