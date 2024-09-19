@@ -12,5 +12,5 @@ defaults:
   - instruction: ver_1.1.yaml
   - preference: ver_1.0.yaml
 
-dataset_path: /Users/nam-young-woo/Desktop/codes/llm_data_processing/datas/
+dataset_path: /data2/datas/LLM/visual_novel
 use_system: True

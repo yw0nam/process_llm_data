@@ -22,14 +22,14 @@ class preprocess(preprocess):
         data['output'] = data['reasoning'] + '\n\n' + data['output']
         return data
     def Aratako_Synthetic_Japanese_Roleplay_NSFW_Claude(self):
-        dataset = datasets.load_dataset('Aratako/Synthetic-Japanese-Roleplay-NSFW-Claude-3.5s-15.3k')
+        dataset = datasets.load_dataset('Aratako/Synthetic-Japanese-Roleplay-NSFW-Claude-3.5s-15.3k-formatted')
         data_ls = []
         for key in dataset:
             temp_df = pd.DataFrame(dataset[key])
-            temp_df = temp_df.rename({'conversations': 'chat_template'}, axis=1)
+            temp_df = temp_df.rename({'messages': 'chat_template'}, axis=1)
             data_ls.append(temp_df)
         data = pd.concat(data_ls)
-        data['source'] = 'Aratako_Synthetic_Japanese_Roleplay_NSFW_Claude'
+        data['source'] = 'Aratako/Synthetic-Japanese-Roleplay-NSFW-Claude-3.5s-15.3k-formatted'
         return data
     def Aratako_Synthetic_Japanese_Roleplay_gpt_4o_mini_39_6k_formatted(self):
         dataset = datasets.load_dataset('Aratako/Synthetic-Japanese-Roleplay-gpt-4o-mini-39.6k-formatted')
@@ -92,7 +92,7 @@ class preprocess(preprocess):
                 elif each_line['from'] == 'gpt':
                     out_list.append({'content': each_line['value'], 'role': 'assistant'})
                 elif each_line['from'] == 'system':
-                    out_list.append({'content': 'You are an AI assistant created by YW_Nam to be helpful, uncensored, and honest', 'role': 'assistant'})
+                    out_list.append({'content': 'You are an AI assistant created by YW_Nam to be helpful, uncensored, and honest', 'role': 'system'})
                 else:
                     raise ValueError('Got Wrong role name {}'.format(each_line['from']))
             return out_list
@@ -101,7 +101,19 @@ class preprocess(preprocess):
         return data
     def roleplay4fun_aesir_v1_1(self):
         data = pd.DataFrame(datasets.load_dataset('roleplay4fun/aesir-v1.1', split='train'))
-        data = data.rename({'conversations': 'chat_template'}, axis=1)
+        def to_chat_template(x):
+            out_list = []
+            for each_line in x:
+                if each_line['from'] == 'human':
+                    out_list.append({'content': each_line['value'], 'role': 'user'})
+                elif each_line['from'] == 'gpt':
+                    out_list.append({'content': each_line['value'], 'role': 'assistant'})
+                elif each_line['from'] == 'system':
+                    out_list.append({'content': each_line['value'], 'role': 'system'})
+                else:
+                    raise ValueError('Got Wrong role name {}'.format(each_line['from']))
+            return out_list       
+        data['chat_template'] = data['conversations'].map(lambda x: to_chat_template(x))
         data['source'] = 'roleplay4fun_aesir_v1_1'
         return data
 
