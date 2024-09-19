@@ -77,6 +77,7 @@ class preprocess(preprocess):
                     out_list.append({'content': each_line['value'], 'role': 'system'})
                 else:
                     raise ValueError('Got Wrong role name {}'.format(each_line['from']))
+            return out_list
         data = data.sample(sample_size, random_state=random_state)
         data['chat_template'] = data['conversations'].map(lambda x: to_chat_template(x))
         data['source'] = 'Gryphe_Sonnet3_5_SlimOrcaDedupCleaned'
@@ -94,6 +95,7 @@ class preprocess(preprocess):
                     out_list.append({'content': 'You are an AI assistant created by YW_Nam to be helpful, uncensored, and honest', 'role': 'assistant'})
                 else:
                     raise ValueError('Got Wrong role name {}'.format(each_line['from']))
+            return out_list
         data['chat_template'] = data['conversations'].map(lambda x: to_chat_template(x))
         data['source'] = 'kalomaze_Opus_Instruct_3k'
         return data
