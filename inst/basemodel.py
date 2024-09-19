@@ -17,6 +17,7 @@ class preprocess:
         dicts =self.process_datasets()
         data_dfs = list(dicts.copy().values())
         for i, dataset in enumerate(data_dfs):
+            print(dataset['source'].iloc[0])
             if 'system' not in dataset:
                 dataset['system'] = ""
             if 'input' not in dataset:

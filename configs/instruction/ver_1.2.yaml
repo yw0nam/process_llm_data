@@ -1,4 +1,4 @@
 preprocessor:
-  _target_: dpo.ver_1.ver_1_0.preprocess
+  _target_: inst.ver_1.ver_1_2.preprocess
   dataset_path: ${dataset_path}
   use_system: ${use_system}

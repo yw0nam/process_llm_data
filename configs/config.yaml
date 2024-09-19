@@ -10,7 +10,7 @@ main:
 
 defaults:
   - instruction: ver_1.1.yaml
-  - dpo: ver_1.0.yaml
+  - preference: ver_1.0.yaml
 
 dataset_path: /Users/nam-young-woo/Desktop/codes/llm_data_processing/datas/
 use_system: True
