@@ -5,7 +5,7 @@ sys.path.insert(0, root_dir)
 import pandas as pd
 from utils import jload, jdump
 # %%
-csv = pd.read_json('./../../datas/processed/generate_novel.json')
+csv = pd.read_json('/data2/datas/LLM/visual_novel/processed/generate_novel.json')
 # %%
 grouped = csv.groupby(by=['game_name'])
 # %%
@@ -32,5 +32,5 @@ novel_generate = concated.apply(lambda x:
     axis=1
 ).to_list()
 # %%
-jdump(novel_generate,'./../../datas/processed/generate_novel_preference.json')
+jdump(novel_generate,'/data2/datas/LLM/visual_novel/processed/generate_novel_preference.json')
 # %%

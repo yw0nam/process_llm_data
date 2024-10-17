@@ -1,4 +1,4 @@
-from inst.basemodel import preprocess
+from basemodel import preprocess
 import datasets
 import pandas as pd
 import os
@@ -16,7 +16,7 @@ class preprocess(preprocess):
         return dicts
     def SkunkworksAI_reasoning_001(self):
         data = pd.DataFrame(datasets.load_dataset('SkunkworksAI/reasoning-0.01', split='train'))
-        data['instruction'] = data['instruction'] + "\n\nBefore starting your answer, organize your thoughts about the problem step by step."
+        data['instruction'] = data['instruction']
         data['input'] = ''
         data['source'] = 'SkunkworksAI/reasoning-0.01'
         data['output'] = data['reasoning'] + '\n\n' + data['output']
@@ -41,11 +41,11 @@ class preprocess(preprocess):
         data = pd.concat(data_ls)
         data['source'] = 'Aratako_Synthetic_Japanese_Roleplay_gpt_4o_mini_39_6k_formatted'
         return data
-    def Aratako_Synthetic_JP_EN_Coding_Dataset_567k(self, sample_size=60000, random_state=1004):
-        data = pd.DataFrame(datasets.load_dataset('Aratako/Synthetic-JP-EN-Coding-Dataset-567k', split='train'))
+    def Aratako_Synthetic_JP_EN_Coding_Dataset_Magpie_69k(self, sample_size=50000, random_state=1004):
+        data = pd.DataFrame(datasets.load_dataset('Aratako/Synthetic-JP-EN-Coding-Dataset-Magpie-69k', split='train'))
         data = data.sample(sample_size, random_state=random_state)
         data = data.rename({'messages': 'chat_template'}, axis=1)
-        data['source'] = 'Aratako_Synthetic_JP_EN_Coding_Dataset_567k'
+        data['source'] = 'Aratako/Synthetic-JP-EN-Coding-Dataset-Magpie-69k'
         return data
     def Nopm_Opus_WritingStruct(self):
         data = pd.DataFrame(data = datasets.load_dataset('Nopm/Opus_WritingStruct', split='train'))
@@ -117,13 +117,14 @@ class preprocess(preprocess):
         data['source'] = 'roleplay4fun_aesir_v1_1'
         return data
 
+
     def process_datasets(self) -> dict[pd.DataFrame]:
         dicts = {}
         dicts = self.read_processed_data(dicts)
         dicts['SkunkworksAI_reasoning_001'] = self.SkunkworksAI_reasoning_001()
         dicts['Aratako_Synthetic_Japanese_Roleplay_NSFW_Claude'] = self.Aratako_Synthetic_Japanese_Roleplay_NSFW_Claude()
         dicts['Aratako_Synthetic_Japanese_Roleplay_gpt_4o_mini_39_6k_formatted'] = self.Aratako_Synthetic_Japanese_Roleplay_gpt_4o_mini_39_6k_formatted()
-        dicts['Aratako_Synthetic_JP_EN_Coding_Dataset_567k'] = self.Aratako_Synthetic_JP_EN_Coding_Dataset_567k()    
+        dicts['Aratako_Synthetic_JP_EN_Coding_Dataset_Magpie_69k'] = self.Aratako_Synthetic_JP_EN_Coding_Dataset_Magpie_69k()    
         dicts['Nopm_Opus_WritingStruct'] = self.Nopm_Opus_WritingStruct()
         dicts['Gryphe_Sonnet3_5_SlimOrcaDedupCleaned'] = self.Gryphe_Sonnet3_5_SlimOrcaDedupCleaned()
         dicts['kalomaze_Opus_Instruct_3k'] = self.kalomaze_Opus_Instruct_3k()

@@ -2,23 +2,18 @@
 import os, sys
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 sys.path.insert(0, root_dir)
-import datasets
 import random
 from tqdm import tqdm
 import re
 import pandas as pd
-from  matplotlib import pyplot as plt
 from utils import jdump, jload
 # %%
-chara_bg_dicts = jload('./../../datas/processed/system_dict_updated.json')
-system_message = """This is an RP (roleplay) chat. Our characters could come from visual novels
-I'm going to give you an character name, a background.
-I want you to respond and answer like characters using the tone, manner and vocabulary characters would use. 
-Here is Main Character's background.
-"""
+chara_bg_dicts = jload('/data2/datas/LLM/visual_novel/processed/system_dict_slimed.json')
+system_message = """This is an RP (roleplay) chat. I'm going to give you an character name and persona about character.
+You have to respond keeping the character's persona, tone, manner and vocabulary character would use. """
 # %%
 # data = pd.read_csv('./../../data/data.csv')
-data = pd.read_csv('~/Desktop/data/visual_novel/yuzusoft/data.csv')
+data = pd.read_csv('/data2/datas/Speech/vn/visual_novel/data.csv')
 data = data.loc[3:]
 # %%
 comp_1 = re.compile("[[][\s0-9ぁ-ゔァ-ヴ々〆〤一-龥ー,\s]*[]]")
@@ -75,7 +70,15 @@ for i in tqdm(range(len(main_chara_data))):
             })
             continue
         if data.loc[j]['dialog_type'] == 'monologue' and data.loc[j]['name'] == '':  # If, user's Monologue
-            out[-1]['content'] = f"{out[-1]['content']}\n{data.loc[j]['text_remove_yomigana']}"
+            if out[-1]['role'] == 'assistant':
+                out.append({
+                    'role': 'user',
+                    'content': f"{data.loc[j]['text_remove_yomigana']}",
+                    'name':data.loc[j]['name']
+                })
+            else:
+                out[-1]['name'] = data.loc[j]['name']
+                out[-1]['content'] = out[-1]['content'] + "\n" +f"{data.loc[j]['text_remove_yomigana']}"
             
         elif out[-1]['name'] == data.loc[j]['name']: # if same character saying continuously
             out[-1]['content'] = f"{out[-1]['content']}\n{data.loc[j]['name']}:{data.loc[j]['text_remove_yomigana']}"
@@ -134,5 +137,5 @@ data= df.apply(lambda x:
     axis=1
 )
 # %%
-jdump(data.to_list(), './../../datas/processed/target_chara_chat.json')
+jdump(data.to_list(), '/data2/datas/LLM/visual_novel/processed/target_chara_chat.json')
 # %%

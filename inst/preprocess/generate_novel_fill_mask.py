@@ -9,14 +9,13 @@ import pandas as pd
 from utils import jdump, jload
 import numpy as np
 # %%
-chara_bg_dicts = jload('./../../datas/processed/system_dict_updated.json')
-system_message = """This is an RP (roleplay) chat. Our characters could come visual novels.
-I'm going to give you an character name, a background.
-I want you to respond and answer like characters using the tone, manner and vocabulary characters would use. 
-Here is Main Character's backgrounds.
+chara_bg_dicts = jload('/data2/datas/LLM/visual_novel/processed/system_dict_slimed.json')
+system_message = """This is Novel Generation. Our characters come from visual novels.
+I'm going to give you an character name, and personality
+You have to write dialogues keeping the character's personality and background.
 """
 # %%
-data = pd.read_csv('~/Desktop/data/visual_novel/yuzusoft/data.csv')
+data = pd.read_csv('/data2/datas/Speech/vn/visual_novel/data.csv')
 # %%
 comp_1 = re.compile("[[][\s0-9ぁ-ゔァ-ヴ々〆〤一-龥ー,\s]*[]]")
 comp_2 = re.compile("[[][・][]]")
@@ -60,7 +59,7 @@ for name, group in tqdm(grouped):
         })
         idx += context_size
 # %%
-def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dicts, mask_portion=0.4):
+def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dicts, mask_portion=0.5):
     while True:
         flag = 0
         masked_ls =[]
@@ -90,7 +89,7 @@ def make_masked_chat_prediction(mapped_text, characters, game_name, chara_bg_dic
     inputs = "\n".join(masked_ls)
     return system, instruction, inputs, output, 'fill_mask', game_name
 
-def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init_portion=0.3):
+def make_novel_generate(mapped_text, characters, game_name, chara_bg_dicts, init_portion=0.5):
     
     init_index = max(int(len(mapped_text) * init_portion), 1)
     init_mapped_text = mapped_text[:init_index]
@@ -122,7 +121,6 @@ dataset = pd.DataFrame({
     'output': output, 
     'source': source, 
     'game_name':game_name,
-    'scene_name': scene_name
 })
 # %%
 novel_generate = dataset.query("source =='novel_generate'").apply(lambda x: 
@@ -133,7 +131,6 @@ novel_generate = dataset.query("source =='novel_generate'").apply(lambda x:
         'output': x['output'],
         "system": x['system'],
         'game_name': x['game_name'],
-        'scene_name': x['scene_name']
     },
     axis=1
 ).to_list()
@@ -145,11 +142,10 @@ fill_mask = dataset.query("source =='fill_mask'").apply(lambda x:
         'output': x['output'],
         "system": x['system'],
         'game_name': x['game_name'],
-        'scene_name': x['scene_name']
     },
     axis=1
 ).to_list()
 # %%
-jdump(novel_generate, '../../datas/processed/generate_novel.json')
-jdump(fill_mask, '../../datas/processed/fill_mask.json')
+jdump(novel_generate, '/data2/datas/LLM/visual_novel/processed/generate_novel.json')
+jdump(fill_mask, 'data2/datas/LLM/visual_novel/processed/fill_mask.json')
 # %%

@@ -10,14 +10,13 @@ import re
 import pandas as pd
 from utils import jdump
 # %%
-chara_bg_dicts = jload('./../../datas/processed/system_dict_updated.json')
+chara_bg_dicts = jload('/data2/datas/LLM/visual_novel/processed/system_dict_slimed.json')
 system_message = """This is an RP (roleplay) chat. Our characters come from visual novels.
-I'm going to give you an character's name and background.
-I want you to respond and answer like characters using the tone, manner and vocabulary characters would use. 
-Here is Main Character's backgrounds.
+I'm going to give you an character name, and personality
+You have to respond keeping the character's personality and given context.
 """
 # %%
-data = pd.read_csv('~/Desktop/data/visual_novel/yuzusoft/data.csv')
+data = pd.read_csv('/data2/datas/Speech/vn/visual_novel/data.csv')
 data = data.loc[3:]
 # %%
 comp_1 = re.compile("[[][\s0-9ぁ-ゔァ-ヴ々〆〤一-龥ー,\s]*[]]")
@@ -40,7 +39,7 @@ main_chara_data = main_chara_data.query("length > 10")
 etc_chara_data = data.query("name not in @name_ls & ~voice.isnull()")
 # %%
 min_context_window = 5
-max_context_window = 20
+max_context_window = 12
 prev_last_index = 0
 out_ls = []
 break_flag = 0
@@ -103,4 +102,6 @@ data = df.apply(lambda x:
     axis=1
 )
 # %%
-jdump(data.to_list(), './../../datas/processed/long_context_chat.json')
+jdump(data.to_list(), '/data2/datas/LLM/visual_novel/processed/long_context_chat.json')
+
+# %%

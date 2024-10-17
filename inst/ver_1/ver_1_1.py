@@ -1,4 +1,4 @@
-from inst.basemodel import preprocess
+from basemodel import preprocess
 import pandas as pd
 import os
 from utils import auto_log_process

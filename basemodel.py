@@ -5,7 +5,7 @@ import pandas as pd
 @auto_log_process
 class preprocess:
     dataset_path: str
-    
+    use_system: bool
     def __init__(self, dataset_path,use_system):
         self.dataset_path = dataset_path
         self.use_system = use_system

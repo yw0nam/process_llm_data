@@ -5,7 +5,7 @@ sys.path.insert(0, root_dir)
 import pandas as pd
 from utils import jload, jdump
 # %%
-csv = pd.read_json('./../../datas/processed/fill_mask.json')
+csv = pd.read_json('/data2/datas/LLM/visual_novel/processed/fill_mask.json')
 csv['mask_count'] = csv['output'].map(lambda x: len(x.split('\n')))
 # %%
 grouped = csv.groupby(by=['game_name', 'mask_count'])
@@ -33,5 +33,5 @@ fill_mask = concated.apply(lambda x:
     axis=1
 ).to_list()
 # %%
-jdump(fill_mask,'./../../datas/processed/fill_mask_preference.json')
+jdump(fill_mask,'/data2/datas/LLM/visual_novel/processed/fill_mask_preference.json')
 # %%

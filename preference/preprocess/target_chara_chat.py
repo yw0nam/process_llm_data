@@ -5,7 +5,7 @@ sys.path.insert(0, root_dir)
 import pandas as pd
 from utils import jload, jdump
 # %%
-csv = pd.read_json('./../../datas/processed/target_chara_chat.json')
+csv = pd.read_json('/data2/datas/LLM/visual_novel/processed/target_chara_chat.json')
 # %%
 grouped = csv.groupby(by=['character'])
 csv['length'] = csv['chat_template'].map(lambda x: len(x))
@@ -45,6 +45,6 @@ dataset = concated.apply(lambda x:
     axis=1
 ).to_list()
 # %%
-jdump(dataset,'./../../datas/processed/target_chara_chat_preference.json')
+jdump(dataset,'/data2/datas/LLM/visual_novel/processed/target_chara_chat_preference.json')
 
 # %%

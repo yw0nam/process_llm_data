@@ -35,7 +35,7 @@ def process(configs, type):
         configs (DictConfig): hydra main config
         type (str): For selecting instruction or dpo
     """
-    config = configs.instruction if configs.main.process_type == 'instruction' else configs.dpo
+    config = configs.instruction if configs.main.process_type == 'instruction' else configs.preference
     main_config = configs.main
 
     process_module = instantiate(config)['preprocessor']
