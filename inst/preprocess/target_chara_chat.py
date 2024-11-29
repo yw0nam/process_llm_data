@@ -9,8 +9,11 @@ import pandas as pd
 from utils import jdump, jload
 # %%
 chara_bg_dicts = jload('/data2/datas/LLM/visual_novel/processed/system_dict_slimed.json')
-system_message = """This is an RP (roleplay) chat. I'm going to give you an character name and persona about character.
-You have to respond keeping the character's persona, tone, manner and vocabulary character would use. """
+system_message_one_chara = """You are {chara}.
+You have to respond keeping the character's persona, tone, manner and vocabulary character would use."""
+system_message_mulit_chara = """You are {chara}.
+When responding, you can speak as any of the characters depending on the context.
+You must respond while keeping the character's persona, tone, manner, and vocabulary that each character would use."""
 # %%
 # data = pd.read_csv('./../../data/data.csv')
 data = pd.read_csv('/data2/datas/Speech/vn/visual_novel/data.csv')
@@ -26,8 +29,6 @@ data['text_remove_yomigana'] = data['text_remove_yomigana'].map(lambda x: re.sub
 # data = data[data['text_remove_yomigana'] != "………"]
 temp = data['name'].value_counts()[3:]
 name_ls = temp[temp > 1500].index.to_list()
-# %%
-data['name'] = data['name'].replace({'昂晴': 'ユーザー', '暁': 'ユーザー', '将臣': 'ユーザー'})
 data['name'] = data['name'].fillna('')
 # %%
 # chara_data = data.query("label == 1") 
@@ -38,8 +39,8 @@ main_chara_data['length'] = main_chara_data['text_remove_yomigana'].map(lambda x
 main_chara_data = main_chara_data.query("length > 10")
 etc_chara_data = data.query("name not in @name_ls & ~voice.isnull()")
 # %%
-min_context_window = 5
-max_context_window = 10
+min_context_window = 10
+max_context_window = 20
 prev_last_index = 0
 out_ls = []
 break_flag = 0
@@ -56,16 +57,32 @@ for i in tqdm(range(len(main_chara_data))):
             context_size += 1
         else:
             break
+        
+    main_chara_ls = list(filter(lambda x: x in name_ls, data.loc[index-context_size:index]['name'].unique()))
+    system_message = system_message_mulit_chara
+    if len(main_chara_ls) > 2:
+        charas = ", ".join(main_chara_ls[:-1]) + ", and " + main_chara_ls[-1]
+    elif len(main_chara_ls) == 2:
+        charas = " and ".join(main_chara_ls)
+    else:
+        charas = main_chara_ls[0]
+        system_message = system_message_one_chara
+        
+    chara_bgs = []
+    for chara in main_chara_ls:
+        chara_bgs.append(chara_bg_dicts[chara])
+    chara_bg = "\n".join(chara_bgs)
+    
+    persona_setup = f"{system_message.format_map({'chara': charas})}\n{chara_bg}"
     for j in data.loc[index-context_size:index].index:
         if out == []:
-            persona_setup = f"{system_message}{chara_bg_dicts[main_chara_data['name'].iloc[i]]}"
             out.append({
                 'role': 'system',
                 'content': persona_setup,
             })
             out.append({
                 'role': 'user',
-                'content': f"{data.loc[j]['name']}:" + data.loc[j]['text_remove_yomigana'],
+                'content': f"{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\"",
                 'name':data.loc[j]['name']
             })
             continue
@@ -73,33 +90,37 @@ for i in tqdm(range(len(main_chara_data))):
             if out[-1]['role'] == 'assistant':
                 out.append({
                     'role': 'user',
-                    'content': f"{data.loc[j]['text_remove_yomigana']}",
+                    'content': f"*{data.loc[j]['text_remove_yomigana']}*",
                     'name':data.loc[j]['name']
                 })
             else:
                 out[-1]['name'] = data.loc[j]['name']
-                out[-1]['content'] = out[-1]['content'] + "\n" +f"{data.loc[j]['text_remove_yomigana']}"
+                out[-1]['content'] = out[-1]['content'] + "\n" +f"*{data.loc[j]['text_remove_yomigana']}*"
             
         elif out[-1]['name'] == data.loc[j]['name']: # if same character saying continuously
-            out[-1]['content'] = f"{out[-1]['content']}\n{data.loc[j]['name']}:{data.loc[j]['text_remove_yomigana']}"
+            out[-1]['content'] = f"{out[-1]['content']}\n{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\""
             
-        elif out[-1]['name'] != data.loc[j]['name'] and data.loc[index]['name'] != data.loc[j]['name']: # if diff character saying and is not target chara,
+        elif out[-1]['name'] != data.loc[j]['name'] and data.loc[j]['name'] not in main_chara_ls: # if diff character saying and is not target chara,
             if out[-1]['role'] == 'assistant':
                 out.append({
                     'role': 'user',
-                    'content': f"{data.loc[j]['name']}: {data.loc[j]['text_remove_yomigana']}",
+                    'content': f"{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\"",
                     'name':data.loc[j]['name']
                 })
             else:
                 out[-1]['name'] = data.loc[j]['name']
-                out[-1]['content'] = out[-1]['content'] + "\n" +f"{data.loc[j]['name']}: {data.loc[j]['text_remove_yomigana']}"
+                out[-1]['content'] = out[-1]['content'] + "\n" +f"{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\""
             
-        elif out[-1]['name'] != data.loc[j]['name'] and data.loc[index]['name'] == data.loc[j]['name']: # if diff character saying and is target chara,
-            out.append({
-                'role': 'assistant',
-                'content': f"{data.loc[j]['name']}: {data.loc[j]['text_remove_yomigana']}",
-                'name':data.loc[j]['name']
-            })
+        elif out[-1]['name'] != data.loc[j]['name'] and data.loc[j]['name'] in main_chara_ls: # if diff character saying and is target chara,
+            if out[-1]['role'] != 'assistant':
+                out.append({
+                    'role': 'assistant',
+                    'content': f"{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\"",
+                    'name':data.loc[j]['name']
+                })
+            else:
+                out[-1]['name'] = data.loc[j]['name']
+                out[-1]['content'] = out[-1]['content'] + "\n" +f"{data.loc[j]['name']}: \"{data.loc[j]['text_remove_yomigana']}\""
         else:
             break_flag = 1
             break
@@ -122,11 +143,12 @@ for i in tqdm(range(len(main_chara_data))):
         })
     out_ls.append({
         'chat_template': out,
-        'character': data.loc[index]['name']
+        'character': ','.join(main_chara_ls)
     })
 # %%    
 df = pd.DataFrame(out_ls)
 df['source'] = 'target_chara_chat'
+df['num_of_chara'] = df['character'].map(lambda x: len(x.split(',')))
 # %%
 data= df.apply(lambda x: 
     {   

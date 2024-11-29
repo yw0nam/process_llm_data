@@ -21,15 +21,11 @@ comp_1 = re.compile("[[][\s0-9ぁ-ゔァ-ヴ々〆〤一-龥ー,\s]*[]]")
 comp_2 = re.compile("[[][・][]]")
 data['text_remove_yomigana'] = data['text'].map(lambda x: re.sub(comp_1, '', x))
 data['text_remove_yomigana'] = data['text_remove_yomigana'].map(lambda x: re.sub(comp_2, '', x)) 
-# %%ß
 comp_3 = re.compile("[『]|[』]")
 data['text_remove_yomigana'] = data['text_remove_yomigana'].map(lambda x: re.sub(comp_3, '', x)) 
 # data = data[data['text_remove_yomigana'] != "………"]
 temp = data['name'].value_counts()[3:]
 name_ls = temp[temp > 1500].index.to_list()
-# %%
-data['name'] = data['name'].replace({'昂晴': 'ユーザー', '暁': 'ユーザー', '将臣': 'ユーザー'})
-data['name'] = data['name'].fillna('ユーザー')
 # %%
 min_context_window = 10
 max_context_window = 20
@@ -42,9 +38,9 @@ out = []
 def apply_fn(name, text_remove_yomigana, dialog_type):
     text = ""
     if dialog_type == 'monologue':
-        text += text_remove_yomigana
+        text += f"*{text_remove_yomigana}*"
     else:
-        text += f"{name}:" + text_remove_yomigana
+        text += f"""{name}: "{text_remove_yomigana}\""""
     return text
 for name, group in tqdm(grouped):
     idx = 0
@@ -147,5 +143,5 @@ fill_mask = dataset.query("source =='fill_mask'").apply(lambda x:
 ).to_list()
 # %%
 jdump(novel_generate, '/data2/datas/LLM/visual_novel/processed/generate_novel.json')
-jdump(fill_mask, 'data2/datas/LLM/visual_novel/processed/fill_mask.json')
+jdump(fill_mask, '/data2/datas/LLM/visual_novel/processed/fill_mask.json')
 # %%

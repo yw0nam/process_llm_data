@@ -11,10 +11,8 @@ import pandas as pd
 from utils import jdump
 # %%
 chara_bg_dicts = jload('/data2/datas/LLM/visual_novel/processed/system_dict_slimed.json')
-system_message = """This is an RP (roleplay) chat. Our characters come from visual novels.
-I'm going to give you an character name, and personality
-You have to respond keeping the character's personality and given context.
-"""
+system_message = """You are {chara}.
+You have to respond keeping the character's personality and given contxt."""
 # %%
 data = pd.read_csv('/data2/datas/Speech/vn/visual_novel/data.csv')
 data = data.loc[3:]
@@ -29,8 +27,6 @@ data['text_remove_yomigana'] = data['text_remove_yomigana'].map(lambda x: re.sub
 # data = data[data['text_remove_yomigana'] != "………"]
 temp = data['name'].value_counts()[3:]
 name_ls = temp[temp > 1500].index.to_list()
-# %%
-data['name'] = data['name'].replace({'昂晴': 'ユーザー', '暁': 'ユーザー', '将臣': 'ユーザー'})
 data['name'] = data['name'].fillna('モノローグ')
 # %%
 main_chara_data = data.query("name in @name_ls")
@@ -61,8 +57,8 @@ for i in tqdm(range(len(main_chara_data))):
             break
         
     out = data.loc[index-context_size:index].apply(lambda x:
-        f"{x['name']}: {x['text_remove_yomigana']}" if x['name'] != "モノローグ" else
-        f"{x['text_remove_yomigana']}"
+        f"{x['name']}: \"{x['text_remove_yomigana']}\"" if x['name'] != "モノローグ" else
+        f"*{x['text_remove_yomigana']}*"
     ,axis=1).to_list()
     for idx in range(1, len(out)):
         if out[-idx].split(':')[0] != target_chara:
@@ -73,7 +69,7 @@ for i in tqdm(range(len(main_chara_data))):
         'chat_template': [
             {
                 'role': 'system',
-                'content': f"{system_message}{chara_bg_dicts[target_chara]}"
+                'content': f"{system_message.format_map({'chara': target_chara})}{chara_bg_dicts[target_chara]}"
             },
             {
                 'role': 'user', 

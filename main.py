@@ -10,7 +10,7 @@ def save_split(df, root_path, save_path, type='instruction'):
         df = df.apply(lambda x: 
             {   
                 "source" : x['source'],
-                "chat_template" : x['chat_template']
+                "chat_template" : x['chat_template'],
             },
             axis=1
         )
