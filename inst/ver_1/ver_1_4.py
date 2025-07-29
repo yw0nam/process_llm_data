@@ -3,13 +3,14 @@ from .ver_1_3 import preprocess
 import datasets
 import pandas as pd
 import os
-from utils import auto_log_process
+from tools.utils import auto_log_process, resize_output
 
 @auto_log_process
 class preprocess(preprocess):
     def __init__(self, dataset_path, use_system):
         super().__init__(dataset_path, use_system)
-
+    
+    @resize_output(size=5000)
     def Bluemoon_Top50MB_Sorted_Fixed(self):
         data = pd.DataFrame(datasets.load_dataset('SicariusSicariiStuff/Bluemoon_Top50MB_Sorted_Fixed', split='train'))
         def to_chat_template(x):
@@ -27,19 +28,17 @@ class preprocess(preprocess):
         data['chat_template'] = data['conversations'].map(lambda x: to_chat_template(x))
         data['source'] = 'SicariusSicariiStuff/Bluemoon_Top50MB_Sorted_Fixed'
         return data
-    # Overide 
-    def Aratako_Synthetic_JP_EN_Coding_Dataset_Magpie_69k(self):
-        pass
-    def Aratako_Synthetic_JP_EN_Coding_Dataset_801k(self, sample_size=50000, random_state=1004):
+    @resize_output(size=5000)
+    def Aratako_Synthetic_JP_EN_Coding_Dataset_801k(self):
         data = pd.DataFrame(datasets.load_dataset('Aratako/Synthetic-JP-EN-Coding-Dataset-801k', split='train'))
         data = data.query("language == 'Japanese'")
-        data = data.sample(sample_size, random_state=random_state)
         data = data.rename({'messages': 'chat_template'}, axis=1)
         data['source'] = 'Aratako_Synthetic_JP_EN_Coding_Dataset_801k'
         return data
-    def Magpie_Tanuki_8B_97k(self, sample_size=50000, random_state=1004):
+    
+    @resize_output(size=5000)
+    def Magpie_Tanuki_8B_97k(self):
         data = pd.DataFrame(datasets.load_dataset('Aratako/Magpie-Tanuki-8B-97k', split='train'))
-        data = data.sample(sample_size, random_state=random_state)
         data = data.rename({'messages': 'chat_template'}, axis=1)
         data['source'] = 'Aratako/Magpie-Tanuki-8B-97k'
         return data

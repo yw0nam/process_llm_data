@@ -29,10 +29,14 @@ def extract_tools(text):
         functions = json.loads(json_part)
         tools = []
         for func in functions:
-            tools.append({
-                "type": "function",
-                "function": func
-            })
+            has_type = func.get('type', "")
+            if has_type != "function":
+                tools.append({
+                    "type": "function",
+                    "function": func
+                })
+            else:
+                tools.append(func)
         return tools
     except Exception as e:
         print(f"Error extracting tools: {e}")
@@ -54,6 +58,12 @@ def to_chat_template(messages, system_message_one_chara, chara_bg_dicts, chara_l
         messages[1],
         {'role': 'tool_calls', 'content': re.sub(r'<tool_call>|</tool_call>', '', messages[2]['content'])},
     ]
+    
+    try:
+        ast.literal_eval(out_list[2]['content'])
+    except Exception as e:
+        print(f"Error parsing output: {e}")
+        return [], None
     return out_list, tools
 # %%
 waifu = data['messages'].map(lambda x: to_chat_template(x, system_message_one_chara, chara_bg_dicts, chara_ls))
@@ -75,5 +85,8 @@ data= data.apply(lambda x:
     axis=1
 )
 # %%
-jdump(data.to_list(), '//data2/datas/LLM/visual_novel/processed/smoltalk_apigen.json')
+jdump(data.to_list(), '/data2/datas/LLM/visual_novel/processed/smoltalk_apigen.json')
+# %%
+temp = jload('/data2/datas/LLM/visual_novel/processed/smoltalk_apigen.json')
+temp[0]
 # %%

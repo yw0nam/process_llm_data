@@ -1,7 +1,7 @@
 from basemodel import preprocess
 import pandas as pd
 import os
-from utils import auto_log_process
+from tools.utils import auto_log_process
 
 @auto_log_process
 class preprocess(preprocess):

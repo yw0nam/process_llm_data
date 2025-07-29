@@ -3,7 +3,7 @@ from omegaconf import DictConfig
 import hydra
 from hydra.utils import instantiate
 from sklearn.model_selection import train_test_split
-from utils import jdump
+from tools.utils import jdump, encode_utf8
     
 def save_split(df, root_path, save_path, type='instruction'):
     if type == 'instruction':
@@ -49,6 +49,8 @@ def process(configs, type):
         print("Specified Sample size is bigger than actual data size\nSetting sample size as data count")
         dev = data
     
+    dev['chat_template'] = dev['chat_template'].map(lambda x: encode_utf8(x) if isinstance(x, list) else x)
+    dev['source'] = dev['source'].map(lambda x: encode_utf8(x) if isinstance(x, list) else x)
     train, val = train_test_split(dev, test_size=main_config.valid_size, random_state=1004, stratify=dev['source'])
     save_split(
         train, 

@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import io
 import json
 from functools import wraps
@@ -85,3 +86,27 @@ def merge_system_to_inst(chat_template: list[dict]):
     system_message = chat_template.pop(0)['content']
     chat_template[0]['content'] = f"{system_message}\n{chat_template[0]['content']}"
     return chat_template
+
+def resize_output(size: int = 5000, random_state: int = 1004):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Call the original function
+            df = func(*args, **kwargs)
+            # Ensure it's a DataFrame and resize
+            if isinstance(df, pd.DataFrame):
+                return df.sample(min(size, len(df)), random_state=random_state)
+            raise TypeError("The decorated function must return a pandas DataFrame")
+        return wrapper
+    return decorator
+
+def encode_utf8(obj):
+    """Recursively encode all strings in a nested dictionary or list to UTF-8"""
+    if isinstance(obj, dict):
+        return {k: encode_utf8(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [encode_utf8(v) for v in obj]
+    elif isinstance(obj, str):
+        return obj.encode("utf-8", "ignore").decode("utf-8")  # Encode & decode to ensure UTF-8
+    else:
+        return obj  # Return non-string values as is
