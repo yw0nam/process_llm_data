@@ -51,7 +51,6 @@ class DataConfig(BaseModel):
     dataset_configs: dict[str, DatasetConfig] = Field(
         default_factory=dict, description="Configuration for each dataset"
     )
-    use_system: bool = Field(default=True, description="Whether to use system messages")
 
 
 class ProcessingConfig(BaseModel):
@@ -147,45 +146,3 @@ class PipelineConfig(BaseModel):
         """Save configuration to YAML file."""
         with open(output_path, "w", encoding="utf-8") as f:
             yaml.safe_dump(self.dict(), f, default_flow_style=False, indent=2)
-
-
-class LegacyConfigAdapter:
-    """Adapter to convert legacy Hydra configs to new Pydantic schemas."""
-
-    @staticmethod
-    def from_hydra_config(hydra_config: dict[str, Any]) -> PipelineConfig:
-        """
-        Convert Hydra configuration to Pydantic schema.
-
-        Args:
-            hydra_config: Legacy Hydra configuration dictionary
-
-        Returns:
-            Pydantic configuration object
-        """
-        # Extract main config
-        main_config = hydra_config.get("main", {})
-
-        # Map legacy configuration to new schema
-        config_dict = {
-            "data": {
-                "input_path": Path(hydra_config.get("dataset_path", ".")),
-                "output_path": Path("./outputs"),
-                "use_system": hydra_config.get("use_system", True),
-                "dataset_configs": {},
-            },
-            "processing": {
-                "process_type": main_config.get("process_type", "instruction"),
-                "version": main_config.get("version", "v1"),
-                "sample_size": (
-                    main_config.get("sample_size")
-                    if main_config.get("sample_size") != "not_selected"
-                    else None
-                ),
-                "validation_size": main_config.get("valid_size", 5000),
-            },
-            "output": {"format": "json"},
-            "logging": {"level": "INFO"},
-        }
-
-        return PipelineConfig(**config_dict)

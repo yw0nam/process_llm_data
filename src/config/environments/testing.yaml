@@ -3,7 +3,6 @@
 data:
   input_path: "./tests/fixtures/sample_datasets"
   output_path: "./tests/outputs"
-  use_system: true
   dataset_configs: {}
 
 processing:

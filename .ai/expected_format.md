@@ -1,7 +1,6 @@
 # Instruction data 
 
-# Expected format while processing
-
+# Expected Input
 While processing data, keep this format in mind:
 
 ```yaml
@@ -19,6 +18,8 @@ tools: list[dict] | None
 images: list[str] | list[PIL.Image] | None
 ```
 ## Instruction output format
+
+RULE: MUST USE ast.literal_eval and str() 
 
 When save the output of the instruction, all data should be in this format.
 

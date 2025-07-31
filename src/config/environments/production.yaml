@@ -3,7 +3,6 @@
 data:
   input_path: "/data/llm_datasets"
   output_path: "/outputs/prod"
-  use_system: true
   dataset_configs: {}
 
 processing:

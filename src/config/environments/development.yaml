@@ -3,7 +3,6 @@
 data:
   input_path: "./data"
   output_path: "./outputs/dev"
-  use_system: true
   dataset_configs: {}
 
 processing:

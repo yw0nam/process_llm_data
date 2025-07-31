@@ -6,7 +6,6 @@ AIDEV-NOTE: Configuration module with Pydantic schemas and environment support.
 from .schemas import (
     DataConfig,
     DatasetConfig,
-    LegacyConfigAdapter,
     LoggingConfig,
     OutputConfig,
     PipelineConfig,
@@ -20,5 +19,4 @@ __all__ = [
     "OutputConfig",
     "LoggingConfig",
     "DatasetConfig",
-    "LegacyConfigAdapter",
 ]

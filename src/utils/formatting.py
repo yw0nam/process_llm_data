@@ -4,7 +4,7 @@ AIDEV-NOTE: Utilities for formatting data according to expected output formats.
 Handles conversion between different message formats and ensures consistency.
 """
 
-import json
+import ast
 import logging
 from typing import Any
 
@@ -111,9 +111,9 @@ def format_instruction_data(data: dict[str, Any]) -> dict[str, Any]:
 
     # Convert to strings for output format
     formatted_data = {
-        "messages": json.dumps(messages, ensure_ascii=False),
+        "messages": str(messages),
         "source": str(data.get("source", "")),
-        "tools": json.dumps(data.get("tools")) if data.get("tools") else None,
+        "tools": str(data.get("tools")) if data.get("tools") else None,
         "images": data.get("images"),  # Keep as is for now
     }
 
@@ -147,11 +147,11 @@ def format_preference_data(data: dict[str, Any]) -> dict[str, Any]:
 
     # Convert to strings for output format
     formatted_data = {
-        "messages": json.dumps(messages, ensure_ascii=False),
+        "messages": str(messages),
         "source": str(data.get("source", "")) if data.get("source") else None,
-        "tools": json.dumps(data.get("tools")) if data.get("tools") else None,
+        "tools": str(data.get("tools")) if data.get("tools") else None,
         "images": data.get("images"),  # Keep as is for now
-        "rejected": json.dumps(formatted_rejected, ensure_ascii=False),
+        "rejected": str(formatted_rejected),
     }
 
     return formatted_data
@@ -174,18 +174,18 @@ def validate_instruction_format(data: dict[str, Any]) -> bool:
             logger.error(f"Missing required field: {field}")
             return False
 
-    # Check if messages is valid JSON string
+    # Check if messages is valid string representation
     try:
         messages = (
-            json.loads(data["messages"])
+            ast.literal_eval(data["messages"])
             if isinstance(data["messages"], str)
             else data["messages"]
         )
         if not isinstance(messages, list):
             logger.error("Messages must be a list")
             return False
-    except json.JSONDecodeError:
-        logger.error("Messages is not valid JSON")
+    except (ValueError, SyntaxError):
+        logger.error("Messages is not valid string representation")
         return False
 
     return True
@@ -211,12 +211,12 @@ def validate_preference_format(data: dict[str, Any]) -> bool:
     # Validate messages and rejected
     try:
         messages = (
-            json.loads(data["messages"])
+            ast.literal_eval(data["messages"])
             if isinstance(data["messages"], str)
             else data["messages"]
         )
         rejected = (
-            json.loads(data["rejected"])
+            ast.literal_eval(data["rejected"])
             if isinstance(data["rejected"], str)
             else data["rejected"]
         )
@@ -229,8 +229,8 @@ def validate_preference_format(data: dict[str, Any]) -> bool:
             logger.error("Rejected must be a dict")
             return False
 
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in data: {e}")
+    except (ValueError, SyntaxError) as e:
+        logger.error(f"Invalid string representation in data: {e}")
         return False
 
     return True

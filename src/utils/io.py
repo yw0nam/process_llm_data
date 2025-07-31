@@ -87,7 +87,7 @@ def write_jsonl(data: list[dict[str, Any]], file_path: str | Path) -> None:
 
     with open(file_path, "w", encoding="utf-8") as f:
         for item in data:
-            f.write(json.dumps(item, ensure_ascii=False) + "\n")
+            f.write(str(item) + "\n")
 
 
 def save_dataset(

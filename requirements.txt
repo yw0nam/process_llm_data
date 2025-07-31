@@ -1,8 +1,0 @@
-pandas
-hydra-core
-scikit-learn
-absl-py
-mecab-python3
-nltk
-datasets
-jsonlines

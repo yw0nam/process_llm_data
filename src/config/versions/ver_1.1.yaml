@@ -1,0 +1,37 @@
+version: "1.1"
+description: "Example dataset processing version with multiple datasets"
+
+datasets:
+  - name: "alpaca_gpt4"
+    type: "huggingface"
+    sample_size: 1000
+    processing_function: "alpaca_to_messages"
+    dataset_id: "yahma/alpaca-cleaned"
+    split: "train"
+    
+  - name: "smoltalk_data"
+    type: "huggingface" 
+    sample_size: 500
+    processing_function: "smoltalk_to_messages"
+    dataset_id: "HuggingFaceTB/smoltalk"
+    split: "train"
+    
+  - name: "custom_instructions"
+    type: "local_files"
+    sample_size: 200
+    processing_function: "custom_to_messages"
+    file_path: "data/custom_instructions.jsonl"
+
+processing:
+  output_format: "instruction"
+  merge_strategy: "concatenate"
+  shuffle: true
+  seed: 42
+
+output:
+  path: "outputs/v1.1"
+  name: "processed_instruction_data_v1.1"
+  format: "huggingface"
+  description: "Processed instruction dataset v1.1"
+  version: "1.1"
+  tags: ["instruction", "chat", "v1.1"]

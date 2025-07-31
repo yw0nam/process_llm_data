@@ -26,7 +26,7 @@ def test_imports():
         ProcessingConfig,
     )
     from src.core.exceptions import ConfigurationError, DatasetError, ProcessingError
-    from src.core.pipeline import DataPipeline
+    from src.core.pipeline import DatasetProcessingPipeline
     from src.core.processor import BaseProcessor
 
     # Test dataset imports

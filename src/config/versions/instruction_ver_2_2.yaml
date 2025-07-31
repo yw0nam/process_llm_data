@@ -1,0 +1,48 @@
+# Version 2.2 Configuration
+# Dataset processing configuration with custom processing functions
+
+version: "2.2"
+description: "Instruction dataset processing with standardized format conversion"
+
+datasets:
+  # HuggingFace dataset example
+  - name: "alpaca_gpt4"
+    type: "huggingface"
+    dataset_id: "vicgalle/alpaca-gpt4"
+    sample_size: 1000
+    processing_function: "alpaca_to_messages"
+    split: "train"
+    extra_params:
+      trust_remote_code: false
+
+  # Local dataset example
+  - name: "custom_instructions"
+    type: "local_files"
+    file_path: "data/custom_instructions.jsonl"
+    sample_size: 500
+    processing_function: "custom_to_messages"
+    extra_params:
+      encoding: "utf-8"
+
+  # SmolTalk dataset example
+  - name: "smoltalk_data"
+    type: "huggingface"
+    dataset_id: "HuggingFaceTB/smoltalk"
+    sample_size: 2000
+    processing_function: "smoltalk_to_messages"
+    split: "train"
+
+processing:
+  output_format: "instruction"
+  merge_strategy: "concatenate"
+  shuffle: true
+  seed: 42
+
+output:
+  path: "outputs/instruction/ver_2_2"
+  name: "instruction_dataset_v2_2"
+  format: "huggingface"
+  save_method: "save_to_disk"
+  description: "Processed instruction dataset with standardized message format"
+  version: "2.2"
+  tags: ["instruction", "chat", "gpt4", "alpaca", "smoltalk"]

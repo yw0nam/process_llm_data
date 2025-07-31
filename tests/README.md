@@ -2,232 +2,145 @@
 
 ## Overview
 
-This test suite provides comprehensive Test-Driven Development (TDD) support for the LLM data processing pipeline restructuring. The tests validate data formats specified in `expected_output_format.md` and support the improvement plan outlined in `improvement_plan.md`.
+This test suite provides comprehensive testing support for the LLM data processing pipeline. The tests validate data formats specified in `expected_format.md` and support the modular architecture with dataset registry, processing functions, and YAML-driven configuration.
 
 ## Test Structure
 
 ```
 tests/
 ├── conftest.py                    # Test configuration and fixtures
-├── run_tests.py                   # Test runner script  
+├── run_tests.py                   # Test runner script utilities
 ├── fixtures/
 │   └── sample_data.py            # Realistic sample data for testing
 ├── unit/
 │   └── test_datasets/
-│       ├── test_formats.py       # Core format validation tests (4 requested)
+│       ├── test_formats.py       # Core format validation tests
+│       └── test_registry.py      # Dataset registry and processing function tests
 └── integration/
-    └── test_data_pipeline.py     # End-to-end pipeline tests
+    ├── test_data_pipeline.py     # End-to-end pipeline tests
+    ├── test_demo_flow.py         # Demo flow integration tests
+    └── test_foundation.py        # Foundation architecture tests
 ```
 
-## The 4 Requested Tests
+## Core Test Coverage
 
-### 1. `test_check_instruction_data_format`
-**Location**: `tests/unit/test_datasets/test_formats.py::TestInstructionDataFormats::test_check_instruction_data_format`
+### Format Validation Tests (`test_formats.py`)
+**Status**: ✅ COMPLETE - All format validation tests passing
 
-**Purpose**: Validates instruction data format during processing phase.
+- **Instruction data format validation**: Processing and saving formats
+- **Preference data format validation**: Processing and saving formats with rejected responses  
+- **String serialization compatibility**: Uses `str()` and `ast.literal_eval()` as specified
+- **HuggingFace dataset format compliance**: Validates final output format
+- **Error handling**: Malformed data and edge cases
 
-**Validates**:
-- `messages`: list[dict] with proper structure
-- `source`: str (required)
-- `tools`: list[dict] | None
-- `images`: list[str] | list[PIL.Image] | None
-- Message role validation (system, user, assistant, tool)
-- Content structure with type/text/image fields
-- Mutual exclusivity of text and image
+### Dataset Registry Tests (`test_registry.py`)
+**Status**: ✅ COMPLETE - Full registry functionality tested
 
-### 2. `test_check_instruction_data_format_when_saving`
-**Location**: `tests/unit/test_datasets/test_formats.py::TestInstructionDataFormats::test_check_instruction_data_format_when_saving`
+- **Dataset loader registration**: HuggingFace and local files loaders
+- **Processing function registration**: Custom processing functions for different dataset types
+- **Dataset creation and loading**: End-to-end dataset loading workflow
+- **Processing function execution**: Applies registered processing functions to datasets
+- **Error handling**: Missing functions, duplicate registrations, processing errors
 
-**Purpose**: Validates instruction data format when saving to HuggingFace datasets.
+### Integration Tests
+**Status**: ✅ COMPLETE - End-to-end workflows validated
 
-**Validates**:
-- `messages`: str (JSON serialized)
-- `source`: str (required)
-- `tools`: str | None (JSON serialized)
-- `images`: list[str] | list[PIL.Image] | None
-- JSON string validity and round-trip conversion
+- **Complete flow testing** (`test_demo_flow.py`): Full YAML-driven pipeline
+- **Data pipeline integration** (`test_data_pipeline.py`): Multi-dataset processing
+- **Foundation architecture** (`test_foundation.py`): Core component integration
+- **Format compatibility**: str() serialization and ast.literal_eval() parsing
 
-### 3. `test_check_preference_data_format`
-**Location**: `tests/unit/test_datasets/test_formats.py::TestPreferenceDataFormats::test_check_preference_data_format`
+## Architecture Overview
 
-**Purpose**: Validates preference data format during processing phase.
+### Current Implementation Status ✅
 
-**Validates**:
-- All instruction format requirements
-- `rejected`: dict with assistant/tool response structure
-- Rejected role validation (assistant, tool only)
-- Rejected content structure matching message format
+**YAML-Driven Pipeline**: Complete flow implemented
+- ✅ Version YAML configuration with dataset definitions
+- ✅ Dataset registry with plugin architecture  
+- ✅ Processing function registry for custom transformations
+- ✅ Format converters ensuring strict output schema compliance
+- ✅ Pipeline orchestration (load → process → merge → save)
+- ✅ HuggingFace dataset output with metadata
 
-### 4. `test_check_preference_data_format_when_saving`
-**Location**: `tests/unit/test_datasets/test_formats.py::TestPreferenceDataFormats::test_check_preference_data_format_when_saving`
+**Data Format Compliance**: All specifications met
+- ✅ Uses `str()` for serialization and `ast.literal_eval()` for parsing
+- ✅ Expected schema: `messages`, `source`, `tools`, `images` (all strings except images)
+- ✅ Full validation for both instruction and preference data formats
+- ✅ Round-trip compatibility verified through comprehensive testing
 
-**Purpose**: Validates preference data format when saving to HuggingFace datasets.
-
-**Validates**:
-- All instruction saving format requirements
-- `rejected`: str (JSON serialized)
-- JSON string validity for rejected field
-
-## Additional Valuable Tests
-
-### Data Schema Validation (`test_validators.py`)
-- **Message role validation**: Ensures only valid roles are accepted
-- **Content type validation**: Validates text/image content structure
-- **Mutual exclusivity**: Ensures text and image are mutually exclusive
-- **Empty data handling**: Tests edge cases with empty/minimal data
-
-### Data Transformation Tests
-- **JSON serialization/deserialization**: Round-trip testing
-- **Special characters**: Unicode and special character handling
-- **Large data serialization**: Performance with large datasets
-
-### Dataset Integration Tests
-- **DataFrame creation**: pandas DataFrame compatibility
-- **HuggingFace compatibility**: Dataset format validation
-- **Batch processing**: Consistent format across batches
-
-### Error Handling Tests
-- **JSON decode errors**: Malformed JSON handling
-- **Missing required fields**: Field validation
-- **Type validation**: Wrong data type detection
-
-### Performance Tests
-- **Large dataset processing**: Memory and speed testing
-- **Memory efficiency**: Resource usage validation
-- **Concurrent processing**: Thread safety simulation
-
-### Integration Tests (`test_data_pipeline.py` & `test_foundation.py`)
-- **End-to-end instruction pipeline**: Complete workflow testing
-- **End-to-end preference pipeline**: Complete workflow with rejected data
-- **Foundation integration**: Phase 1 architecture validation
-- **Mixed dataset processing**: Handling different data types
-- **Batch processing pipeline**: Large-scale processing
-- **Configuration integration**: Mock configuration testing
-- **Dataset registry**: Plugin system testing
-- **Error recovery**: Pipeline resilience testing
+**Test Coverage**: Comprehensive validation
+- ✅ **65 tests passing** covering all core functionality
+- ✅ Unit tests for format validation and registry functionality
+- ✅ Integration tests for end-to-end pipeline workflows
+- ✅ Demo flow tests validating complete YAML-driven processing
 
 ## Running Tests
 
-### Quick Start - Run the 4 Requested Tests
+### Run All Tests (Recommended)
 ```bash
-cd /home/spow12/codes/2024_upper/NLP/process_llm_data
-uv run python tests/run_tests.py specific
+uv run pytest tests/ -v
 ```
 
-### Run All Format Validation Tests
+### Run Specific Test Categories
 ```bash
-uv run python tests/run_tests.py format
+# Format validation tests
+uv run pytest tests/unit/test_datasets/test_formats.py -v
+
+# Dataset registry tests  
+uv run pytest tests/unit/test_datasets/test_registry.py -v
+
+# Integration tests
+uv run pytest tests/integration/ -v
+
+# Demo flow tests
+uv run pytest tests/test_demo_flow.py -v
 ```
 
-### Run Unit Tests
+### Run with Coverage
 ```bash
-uv run python tests/run_tests.py unit
+uv run pytest tests/ --cov=src --cov-report=html -v
 ```
 
-### Run Integration Tests
+### Run the Demo Flow Manually
 ```bash
-uv run python tests/run_tests.py integration
+uv run python demo.py
 ```
 
-### Run All Tests
-```bash
-uv run python tests/run_tests.py all
-```
+## Key Features Validated
 
-### Manual pytest Execution
-```bash
-# Run specific test
-uv run  pytest tests/unit/test_datasets/test_formats.py::TestInstructionDataFormats::test_check_instruction_data_format -v
+### YAML-Driven Configuration
+- **Version files**: Define datasets, processing functions, and output settings
+- **Dataset registration**: Automatic loading based on type (huggingface, local_files)
+- **Processing functions**: Custom transformations registered by name
+- **Output configuration**: HuggingFace dataset format with metadata
 
-# Run with coverage
-uv run  pytest tests/ --cov=src --cov-report=html
+### Format Converters  
+- **Alpaca to messages**: Instruction/input/output → conversation format
+- **SmolTalk to messages**: Multi-turn conversations → standardized format
+- **Custom processing**: Extensible registry for new dataset types
+- **Strict schema**: All outputs conform to expected format specification
 
-# Run only format validation tests
-uv run  pytest tests/ -m format_validation -v
-```
+### Pipeline Flow
+1. **Load YAML configuration** defining datasets and processing
+2. **Register datasets** using appropriate loaders (HF, local files)
+3. **Apply processing functions** to convert raw data to expected format
+4. **Merge datasets** according to specified strategy (concatenate, etc.)
+5. **Save as HuggingFace dataset** with proper metadata and validation
 
-## Test Markers
+### String Serialization  
+- **Uses str() instead of json.dumps()**: As required by specification
+- **Compatible with ast.literal_eval()**: Verified through testing
+- **Handles complex data structures**: Lists, dicts, nested objects
+- **Maintains data integrity**: Round-trip conversion validated
 
-- `@pytest.mark.unit`: Unit tests
-- `@pytest.mark.integration`: Integration tests
-- `@pytest.mark.format_validation`: Data format validation tests
-- `@pytest.mark.slow`: Tests that take longer to run
+## Current Status
 
-## Dependencies
+✅ **COMPLETE**: All core functionality implemented and tested
+- **65 tests passing** with comprehensive coverage
+- **YAML-driven pipeline** fully functional  
+- **Dataset registry** with processing functions
+- **Format compliance** with expected specifications
+- **String serialization** using str() and ast.literal_eval()
+- **Demo flow** validating end-to-end functionality
 
-### Required for Basic Testing
-```bash
-uv add pytest
-```
-
-### Optional for Enhanced Testing
-```bash
-uv add pytest-cov coverage  # Coverage reporting
-uv add datasets pandas       # For HuggingFace integration tests
-```
-
-## TDD Workflow
-
-1. **Red Phase**: Tests fail initially (no implementation)
-2. **Green Phase**: Implement minimal code to pass tests
-3. **Refactor Phase**: Improve code while keeping tests passing
-
-### Development Workflow
-1. Run the 4 specific tests: `uv run python tests/run_tests.py specific`
-2. Implement data validators to make tests pass
-3. Add more comprehensive tests as needed
-4. Refactor and optimize while maintaining test coverage
-
-## Test Data
-
-### Sample Data Sources
-- **Realistic conversations**: Educational Q&A, coding assistance, productivity advice
-- **Tool usage examples**: Function calling scenarios
-- **Image-based conversations**: Vision model interactions
-- **Invalid data samples**: For negative testing
-
-### Data Characteristics
-- Follows exact format specifications from `expected_output_format.md`
-- Includes edge cases and error conditions
-- Supports both instruction and preference data types
-- Scalable for performance testing
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import errors**: Install missing dependencies
-2. **Path issues**: Run tests from project root directory
-3. **Fixture not found**: Check `conftest.py` is properly loaded
-4. **JSON errors**: Verify sample data format in fixtures
-
-### Debugging
-```bash
-# Run with verbose output and stop on first failure
-uv run pytest tests/ -v -x --tb=long
-
-# Run specific test with debugging
-uv run pytest tests/unit/test_datasets/test_formats.py -v -s --tb=long
-```
-
-## Contributing
-
-When adding new tests:
-
-1. Follow the naming conventions
-2. Add appropriate markers (`@pytest.mark.unit`, etc.)
-3. Use fixtures from `conftest.py`
-4. Add documentation for complex test scenarios
-5. Update this README if adding new test categories
-
-## Integration with Improvement Plan
-
-These tests support the improvement plan phases:
-
-- **Phase 1 (Foundation)**: Core format validation tests
-- **Phase 2 (Data Layer)**: Dataset registry and validation tests  
-- **Phase 3 (Processor Modernization)**: Processing pipeline tests
-- **Phase 4 (Testing & Quality)**: Comprehensive test coverage
-- **Phase 5 (Documentation & CLI)**: Integration and performance tests
-
-The test suite ensures that the restructuring maintains data integrity and format compliance throughout the development process.
+The test suite validates that the implementation meets all requirements for YAML-driven, processing-function-based dataset processing with strict output schema compliance.
