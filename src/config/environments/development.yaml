@@ -1,0 +1,29 @@
+# Development Environment Configuration
+
+data:
+  input_path: "./data"
+  output_path: "./outputs/dev"
+  use_system: true
+  dataset_configs: {}
+
+processing:
+  process_type: "instruction"
+  version: "v1"
+  parallel_workers: 2
+  batch_size: 100
+  sample_size: 1000
+  validation_size: 200
+
+output:
+  output_dir: "./outputs"
+  dataset_name: null
+  train_split_ratio: 0.8
+  val_split_ratio: 0.1
+  test_split_ratio: 0.1
+  push_to_hub: false
+  hub_private: true
+
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "./logs/dev.log"

@@ -1,0 +1,205 @@
+[project]
+name = "process-llm-data"
+version = "1.0.0"
+description = "Comprehensive toolkit for preprocessing datasets for LLM training (SFT and DPO)"
+readme = "readme.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "yw0nam", email = "spow2544@gmail.com" }
+]
+maintainers = [
+    { name = "yw0nam", email = "spow2544@gmail.com" }
+]
+keywords = ["LLM", "Data Processing", "SFT", "DPO", "Machine Learning", "Dataset", "Preprocessing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Linguistic"
+]
+dependencies = [
+    "pandas>=2.0.0",
+    "scikit-learn>=1.3.0",
+    "datasets>=2.14.0",
+    "jsonlines>=3.1.0",
+    "tqdm>=4.65.0",
+    "absl-py>=1.4.0",
+    "mecab-python3>=1.0.6",
+    "nltk>=3.8.0",
+    "pytest>=8.4.1",
+    "ruff>=0.12.5",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "pydantic>=2.0.0",
+    "omegaconf>=2.3.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+]
+restructure = [
+    "pydantic>=2.0.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+]
+all = [
+    "process-llm-data[dev,restructure,docs]",
+]
+
+[project.scripts]
+process-llm-data = "main:main"  # Legacy entry point
+llm-process = "src.main:main"   # Future entry point
+
+[project.urls]
+Homepage = "https://github.com/yw0nam/process_llm_data"
+Repository = "https://github.com/yw0nam/process_llm_data"
+Issues = "https://github.com/yw0nam/process_llm_data/issues"
+Documentation = "https://github.com/yw0nam/process_llm_data#readme"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests", 
+    "e2e: marks tests as end-to-end tests",
+    "slow: marks tests as slow running",
+    "dataset: marks tests that require dataset access",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::FutureWarning",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | outputs
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+src_paths = ["src", "tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*" = ["F401", "F811"]
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+module = [
+    "datasets.*",
+    "mecab.*",
+    "nltk.*",
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/.*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
