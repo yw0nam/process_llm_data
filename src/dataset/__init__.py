@@ -1,23 +1,16 @@
-"""Dataset module for loading and managing datasets.
+"""Dataset management module.
 
-AIDEV-NOTE: Dataset registry and base classes for extensible dataset handling.
-Imports loaders and processors to register them automatically.
+AIDEV-NOTE: Core dataset module providing registry, loaders, and format converters.
+All dataset loading and processing functionality is centralized here.
 """
 
-# Import processors to register processing functions
-from . import processors
-
-# Import format converters to register processing functions
-from . import format_converters
 from .base import BaseDataset
+from .registry import DatasetRegistry
 
-# Import loaders to register them
-from .loaders import huggingface, local_files
-from .registry import DatasetRegistry, register_dataset, register_processing_function
+# Import processors to ensure they are registered
+from . import processors
 
 __all__ = [
     "BaseDataset",
     "DatasetRegistry",
-    "register_dataset",
-    "register_processing_function",
 ]

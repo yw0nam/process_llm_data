@@ -45,25 +45,158 @@ def test_imports():
 
 
 @pytest.mark.integration
-def test_configuration():
-    """Test configuration loading."""
-    from src.config.schemas import PipelineConfig
+def test_version_yaml_configurations():
+    """Test version-specific YAML configuration files validation."""
+    import yaml
+    from src.config.version_schemas import VersionConfig
+    from pathlib import Path
 
-    # Test loading development config
-    config = PipelineConfig.from_yaml("src/config/environments/development.yaml")
-    assert config.data.input_path is not None
+    # Find all version YAML files
+    version_config_dir = Path("src/config/versions")
+    yaml_files = list(version_config_dir.glob("*.yaml"))
 
-    # Test configuration validation
-    assert config.processing.process_type in ["instruction", "preference"]
-    assert (
-        config.output.train_split_ratio
-        + config.output.val_split_ratio
-        + config.output.test_split_ratio
-        == 1.0
-    )
+    assert len(yaml_files) > 0, "No version YAML files found"
 
-    # Test other environments (skip production for testing)
-    PipelineConfig.from_yaml("src/config/environments/testing.yaml")
+    for yaml_file in yaml_files:
+        print(f"Testing {yaml_file.name}")
+
+        # Load and parse YAML
+        with open(yaml_file, "r") as file:
+            config_data = yaml.safe_load(file)
+
+        # Test 1: Check if description exists
+        assert "description" in config_data, f"Missing description in {yaml_file.name}"
+        assert (
+            config_data["description"] is not None
+        ), f"Description is None in {yaml_file.name}"
+        assert isinstance(
+            config_data["description"], str
+        ), f"Description is not a string in {yaml_file.name}"
+        assert (
+            len(config_data["description"].strip()) > 0
+        ), f"Description is empty in {yaml_file.name}"
+
+        # Validate using Pydantic schema
+        config = VersionConfig(**config_data)
+
+        # Test 2: Check version field
+        assert config.version is not None, f"Version is None in {yaml_file.name}"
+        assert isinstance(
+            config.version, str
+        ), f"Version is not a string in {yaml_file.name}"
+
+        # Test 3: Check datasets configuration
+        assert len(config.datasets) > 0, f"No datasets defined in {yaml_file.name}"
+
+        for dataset in config.datasets:
+            # Test dataset name
+            assert dataset.name is not None, f"Dataset name is None in {yaml_file.name}"
+            assert (
+                len(dataset.name.strip()) > 0
+            ), f"Dataset name is empty in {yaml_file.name}"
+
+            # Test dataset type
+            assert dataset.type in [
+                "huggingface",
+                "local_files",
+            ], f"Invalid dataset type '{dataset.type}' in {yaml_file.name}"
+
+            # Test HuggingFace dataset specific fields
+            if dataset.type == "huggingface":
+                assert (
+                    dataset.dataset_id is not None
+                ), f"Missing dataset_id for HuggingFace dataset '{dataset.name}' in {yaml_file.name}"
+                assert isinstance(
+                    dataset.dataset_id, str
+                ), f"dataset_id is not a string for '{dataset.name}' in {yaml_file.name}"
+                assert (
+                    len(dataset.dataset_id.strip()) > 0
+                ), f"dataset_id is empty for '{dataset.name}' in {yaml_file.name}"
+
+                # Check split field
+                if dataset.split is not None:
+                    assert dataset.split in [
+                        "train",
+                        "validation",
+                        "test",
+                        "all",
+                    ], f"Invalid split '{dataset.split}' for '{dataset.name}' in {yaml_file.name}"
+
+            # Test local files dataset specific fields
+            if dataset.type == "local_files":
+                assert (
+                    dataset.file_path is not None
+                ), f"Missing file_path for local dataset '{dataset.name}' in {yaml_file.name}"
+                assert isinstance(
+                    dataset.file_path, str
+                ), f"file_path is not a string for '{dataset.name}' in {yaml_file.name}"
+
+            # Test processing function
+            assert (
+                dataset.processing_function is not None
+            ), f"Missing processing_function for '{dataset.name}' in {yaml_file.name}"
+            assert isinstance(
+                dataset.processing_function, str
+            ), f"processing_function is not a string for '{dataset.name}' in {yaml_file.name}"
+
+            # Test sample size if specified
+            if dataset.sample_size is not None:
+                assert isinstance(
+                    dataset.sample_size, int
+                ), f"sample_size is not an integer for '{dataset.name}' in {yaml_file.name}"
+                assert (
+                    dataset.sample_size > 0
+                ), f"sample_size must be positive for '{dataset.name}' in {yaml_file.name}"
+
+        # Test 4: Check processing configuration
+        assert config.processing.output_format in [
+            "instruction",
+            "preference",
+        ], f"Invalid output_format '{config.processing.output_format}' in {yaml_file.name}"
+        assert config.processing.merge_strategy in [
+            "concatenate",
+            "interleave",
+        ], f"Invalid merge_strategy '{config.processing.merge_strategy}' in {yaml_file.name}"
+        assert isinstance(
+            config.processing.shuffle, bool
+        ), f"shuffle is not a boolean in {yaml_file.name}"
+
+        if config.processing.seed is not None:
+            assert isinstance(
+                config.processing.seed, int
+            ), f"seed is not an integer in {yaml_file.name}"
+
+        # Test 5: Check output configuration
+        assert (
+            config.output.path is not None
+        ), f"Missing output path in {yaml_file.name}"
+        assert (
+            config.output.name is not None
+        ), f"Missing output name in {yaml_file.name}"
+        assert config.output.format in [
+            "huggingface",
+            "parquet",
+        ], f"Invalid output format '{config.output.format}' in {yaml_file.name}"
+
+        # Test output metadata
+        if config.output.description is not None:
+            assert isinstance(
+                config.output.description, str
+            ), f"Output description is not a string in {yaml_file.name}"
+
+        if config.output.version is not None:
+            assert isinstance(
+                config.output.version, str
+            ), f"Output version is not a string in {yaml_file.name}"
+
+        if config.output.tags is not None:
+            assert isinstance(
+                config.output.tags, list
+            ), f"Output tags is not a list in {yaml_file.name}"
+            for tag in config.output.tags:
+                assert isinstance(tag, str), f"Tag is not a string in {yaml_file.name}"
+
+        print(f"✓ {yaml_file.name} passed all validation tests")
 
 
 @pytest.mark.integration
